@@ -1,0 +1,40 @@
+{
+  "project": "AI Agent Demo",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Setup MCP Server",
+      "status": "complete",
+      "priority": "high"
+    },
+    {
+      "id": 2,
+      "name": "Implement Memory Systems",
+      "status": "complete",
+      "priority": "high"
+    },
+    {
+      "id": 3,
+      "name": "Build LangGraph Agent",
+      "status": "complete",
+      "priority": "high"
+    },
+    {
+      "id": 4,
+      "name": "Test Integration",
+      "status": "in-progress",
+      "priority": "medium"
+    },
+    {
+      "id": 5,
+      "name": "Write Documentation",
+      "status": "pending",
+      "priority": "low"
+    }
+  ],
+  "metadata": {
+    "created": "2024-01-01",
+    "updated": "2024-01-26"
+  }
+}
