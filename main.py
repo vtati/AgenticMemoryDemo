@@ -149,10 +149,11 @@ async def run_agent(
     # Set episode storage flag
     initial_state["should_store_episode"] = store_episode
 
-    # Config with thread_id for checkpointing
+    # Config with thread_id for checkpointing (enables short-term memory)
+    # The checkpointer stores conversation history per thread, allowing context to persist within a session
     config = {"configurable": {"thread_id": thread_id}}
 
-    # Run the graph
+    # Run the graph - this executes the full workflow: load context → retrieve episodes → agent → tools → store
     result = await graph.ainvoke(initial_state, config)
 
     # Extract the final response
@@ -248,7 +249,8 @@ async def main():
             interaction_count += 1
             print()  # Blank line before agent output
 
-            # Store as episode every few interactions
+            # Store as episode every 3rd interaction to populate episodic memory
+            # This creates a history of completed tasks that can be recalled for similar future tasks
             store_episode = interaction_count % 3 == 0
 
             try:

@@ -1,9 +1,10 @@
 Shopping List:
 - Apples
-- Bread
+- Bread 
 - Milk
 - Eggs
 - Butter
+- Cheese
 
 Notes:
 - Remember to check for discounts

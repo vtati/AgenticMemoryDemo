@@ -46,18 +46,20 @@ def create_agent_graph() -> StateGraph:
     graph.add_edge("load_context", "retrieve_episodes")
     graph.add_edge("retrieve_episodes", "agent")
 
-    # Agent -> Conditional routing
+    # Agent -> Conditional routing (this creates the dynamic control flow)
+    # The route_agent function decides the next step based on the agent's output
     graph.add_conditional_edges(
         "agent",
         route_agent,
         {
-            "tools": "tools",
-            "store": "store",
-            "end": END
+            "tools": "tools",    # Agent wants to use tools -> execute them
+            "store": "store",    # Task complete with actions -> save episode
+            "end": END           # Done, no tools or storage needed
         }
     )
 
-    # Tools -> Back to Agent (the tool call loop)
+    # Tools -> Back to Agent (creates the agentic loop for multi-step reasoning)
+    # After tools execute, the agent sees the results and decides what to do next
     graph.add_edge("tools", "agent")
 
     # Store -> End

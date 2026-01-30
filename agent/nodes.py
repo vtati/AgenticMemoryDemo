@@ -295,12 +295,14 @@ async def call_agent(state: AgentState) -> dict[str, Any]:
 async def execute_tools(state: AgentState) -> dict[str, Any]:
     """Node: Execute tool calls from the agent's response.
 
-    This handles all tool execution and returns results
-    back to the agent.
+    This handles all tool execution and returns results back to the agent.
+    Tool results are appended as ToolMessages, which the agent will see on the next iteration.
+
+    The node also tracks actions taken for episodic memory storage.
     """
     print("[Tools] Executing tool calls...")
 
-    # Import tool handlers
+    # Import tool handlers (lazy import to avoid circular dependencies)
     from mcp_server.tools import (
         handle_calculator,
         handle_read_file,
@@ -317,6 +319,7 @@ async def execute_tools(state: AgentState) -> dict[str, Any]:
         return {"messages": []}
 
     tool_messages = []
+    # Track actions for episodic memory - accumulate with existing actions from previous tool calls
     actions_taken = list(state.get("task_actions", []))
     memory = get_long_term_memory()
 
@@ -425,23 +428,29 @@ async def store_episode(state: AgentState) -> dict[str, Any]:
 def route_agent(state: AgentState) -> Literal["tools", "store", "end"]:
     """Routing function: Determine next step after agent reasoning.
 
+    This implements the conditional logic that creates the agent's tool-calling loop:
+    - If tools are requested, execute them and return to the agent
+    - If task is complete with actions, store as episode before ending
+    - Otherwise, end the workflow
+
     Returns:
-        - "tools": If the agent wants to use tools
-        - "store": If the task is complete and should be stored
+        - "tools": If the agent wants to use tools (creates loop: agent → tools → agent)
+        - "store": If the task is complete and should be stored as an episode
         - "end": If done (no tools, no storage needed)
     """
     last_message = state["messages"][-1]
 
-    # Check if agent wants to use tools
+    # Check if agent wants to use tools (priority check - enables the agent-tool loop)
     if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
         print("[Router] -> tools")
         return "tools"
 
-    # Check if we should store this as an episode
-    # (has actions and task outcome)
+    # Check if we should store this as an episode in episodic memory
+    # Only store if: (1) actions were taken, and (2) storage is flagged (every 3rd interaction)
     if state.get("task_actions") and state.get("should_store_episode"):
         print("[Router] -> store")
         return "store"
 
+    # No tools needed and no episode to store - workflow complete
     print("[Router] -> end")
     return "end"
